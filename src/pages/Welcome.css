@@ -1,0 +1,22 @@
+.welcome-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 3rem 2rem;
+}
+.welcome-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+.welcome-desc {
+  font-size: 1.2rem;
+  color: #222;
+  margin-bottom: 0;
+}
+
+.meebot-fallback-emoji {
+  font-size: 80px;
+  display: inline-block;
+  margin: 16px 0;
+}

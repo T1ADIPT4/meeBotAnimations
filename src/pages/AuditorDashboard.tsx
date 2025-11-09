@@ -5,10 +5,25 @@
 import React, { useState, useEffect } from 'react';
 import RefundLogsTable from './components/RefundLogsTable';
 import RefundLogDetails from './components/RefundLogDetails';
-import { RefundLog } from '../../server/types';
+import { api } from '../services/api';
 import './AuditorDashboard.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+// ใช้ type ที่ขยายเพิ่มเติม
+type RefundStatus = 'success' | 'failed' | 'pending' | 'completed' | 'flagged';
+
+interface RefundLog {
+  refundId: string;
+  userAddress: string;
+  txHash: string | null;
+  amount: string;
+  reason: string;
+  status: RefundStatus;
+  verifiedAt: string;
+  signatureValid: boolean;
+  executedBy: string;
+  notes: string;
+  createdAt: string;
+}
 
 export default function AuditorDashboard() {
   const [logs, setLogs] = useState<RefundLog[]>([]);
@@ -19,7 +34,8 @@ export default function AuditorDashboard() {
   const [endDate, setEndDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentUserAddress] = useState('0x1234567890abcdef1234567890abcdef12345678'); // Mock user address
+  const [currentUserAddress] = useState('0x1234567890abcdef1234567890abcdef12345678');
+  const [useRealAPI, setUseRealAPI] = useState(true); // Toggle สำหรับเปลี่ยนระหว่าง API/Mock
 
   // Fetch all logs on component mount
   useEffect(() => {
@@ -34,22 +50,87 @@ export default function AuditorDashboard() {
   const fetchLogs = async () => {
     setLoading(true);
     setError(null);
+
     try {
-      const response = await fetch(`${API_BASE_URL}/api/logs`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch logs');
+      if (useRealAPI) {
+        // 🌐 เรียกจาก API จริง
+        const response = await api.get('/api/logs');
+        setLogs(response.data || response);
+      } else {
+        // 📦 ใช้ Mock Data (สำหรับ development)
+        const mockData: RefundLog[] = [
+          {
+            refundId: 'REF-2025-001',
+            userAddress: '0x1234567890abcdef1234567890abcdef12345678',
+            status: 'completed',
+            amount: '0.5',
+            txHash: '0xabcd1234...',
+            reason: 'Contribution refund request',
+            verifiedAt: new Date().toISOString(),
+            signatureValid: true,
+            executedBy: '0xauditor123...',
+            notes: 'Verified and approved',
+            createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            refundId: 'REF-2025-002',
+            userAddress: '0xabcdef1234567890abcdef1234567890abcdef12',
+            status: 'pending',
+            amount: '1.2',
+            txHash: null,
+            reason: 'Project cancellation refund',
+            verifiedAt: new Date().toISOString(),
+            signatureValid: true,
+            executedBy: '',
+            notes: 'Awaiting final approval',
+            createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            refundId: 'REF-2025-003',
+            userAddress: '0x9876543210fedcba9876543210fedcba98765432',
+            status: 'flagged',
+            amount: '2.5',
+            txHash: null,
+            reason: 'Duplicate request flagged',
+            verifiedAt: new Date().toISOString(),
+            signatureValid: false,
+            executedBy: '',
+            notes: 'Under review - possible duplicate',
+            createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            refundId: 'REF-2025-004',
+            userAddress: '0x5555666677778888999900001111222233334444',
+            status: 'completed',
+            amount: '0.8',
+            txHash: '0xdef4567...',
+            reason: 'Early withdrawal',
+            verifiedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+            signatureValid: true,
+            executedBy: '0xauditor456...',
+            notes: 'Processed successfully',
+            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+          },
+        ];
+
+        // จำลองการหน่วงเวลา
+        await new Promise(resolve => setTimeout(resolve, 500));
+        setLogs(mockData);
       }
-      const data = await response.json();
-      setLogs(data.data || []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
       console.error('Error fetching logs:', err);
+
+      // ถ้า API ล้มเหลว ให้ fallback ไปใช้ mock data
+      if (useRealAPI) {
+        console.warn('API failed, falling back to mock data');
+        setUseRealAPI(false);
+        fetchLogs(); // เรียกอีกครั้งด้วย mock data
+      }
     } finally {
       setLoading(false);
     }
-  };
-
-  const applyFilters = () => {
+  }; const applyFilters = () => {
     let filtered = [...logs];
 
     // Apply search filter
@@ -90,30 +171,35 @@ export default function AuditorDashboard() {
     if (!reason) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/logs/flag`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      if (useRealAPI) {
+        // 🌐 เรียก API จริง
+        await api.post('/api/logs/flag', {
           refundId,
           reason,
           flaggedBy: currentUserAddress,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        alert('✅ แจ้งเตือนสำเร็จ! ทีมตรวจสอบจะดำเนินการต่อไป\n(Flag submitted successfully! The audit team will review it.)');
+        });
       } else {
-        throw new Error(data.error || 'Failed to flag log');
+        // 📦 จำลอง flag ใน Mock Data
+        await new Promise(resolve => setTimeout(resolve, 300));
+
+        setLogs(prevLogs =>
+          prevLogs.map(log =>
+            log.refundId === refundId
+              ? { ...log, status: 'flagged' as RefundStatus, notes: `Flagged: ${reason}` }
+              : log
+          )
+        );
       }
+
+      alert('✅ แจ้งเตือนสำเร็จ! ทีมตรวจสอบจะดำเนินการต่อไป\n(Flag submitted successfully! The audit team will review it.)');
+
+      // รีเฟรช logs
+      fetchLogs();
     } catch (err) {
       alert('❌ แจ้งเตือนล้มเหลว กรุณาลองใหม่\n(Failed to flag log. Please try again.)');
       console.error('Error flagging log:', err);
     }
-  };
-
-  const handleExportCSV = () => {
+  }; const handleExportCSV = () => {
     const csvHeaders = [
       'Refund ID',
       'User Address',

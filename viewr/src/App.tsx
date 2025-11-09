@@ -1,15 +1,26 @@
 import './i18n';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import RegistryCard from './components/RegistryCard';
 import MilestoneChart from './components/MilestoneChart';
 import LanguageToggle from './components/LanguageToggle';
 import MeeBot from './components/MeeBot';
+import './App.css'; // Add this import for styles
+
+// Define the type for questMetadata
+type QuestMetadata = {
+  owner: string;
+  name: string;
+  image: string;
+  description: string;
+  [key: string]: any;
+};
 
 export default function App() {
   const [lang, setLang] = useState('th');
-  const [registry, setRegistry] = useState({});
-  const [milestones, setMilestones] = useState([]);
-  const [questMetadata, setQuestMetadata] = useState(null);
+  const [registry, setRegistry] = useState<{ version?: string;[key: string]: any }>({});
+  // Specify the type for milestones to match the parsed structure (excluding nulls)
+  const [milestones, setMilestones] = useState<{ id: string; name: string; msg: string; done: boolean }[]>([]);
+  const [questMetadata, setQuestMetadata] = useState<QuestMetadata | null>(null);
 
   useEffect(() => {
     fetch('/registry.json').then(res => res.json()).then(setRegistry);
@@ -20,8 +31,9 @@ export default function App() {
         if (firstColonIndex === -1) return null;
         const id = entry.substring(0, firstColonIndex);
         const msg = entry.substring(firstColonIndex + 1).trim();
-        return { id, msg, done: true };
-      }).filter(Boolean);
+        // Add 'name' property, using msg as a fallback
+        return { id, name: msg, msg, done: true };
+      }).filter(Boolean) as { id: string; name: string; msg: string; done: boolean }[]; // filter out nulls and assert type
       setMilestones(parsed);
     });
     fetch('/copilot/implement-ipfs-uploader/metadata/quest-001.json')
@@ -34,7 +46,7 @@ export default function App() {
 
   if (isDataLoading) {
     return (
-      <div style={{ textAlign: 'center', paddingTop: '2rem' }}>
+      <div className="app-loading">
         <img src="/assets/fallback/badge-placeholder.svg" alt="Fallback Viewer" />
         <p>กำลังโหลดข้อมูล MeeChain...</p>
       </div>
@@ -45,17 +57,17 @@ export default function App() {
     <div>
       <LanguageToggle lang={lang} setLang={setLang} />
       {questMetadata.owner && (
-        <h2 style={{ fontFamily: 'monospace', textAlign: 'center' }}>
+        <h2 className="app-welcome">
           Welcome, {questMetadata.owner}!
         </h2>
       )}
-      <RegistryCard registry={registry} />
-      <div style={{ border: '1px solid #ccc', padding: '1rem', marginTop: '1rem', fontFamily: 'monospace', textAlign: 'center' }}>
+      <RegistryCard registry={{ name: registry.name ?? '', ...registry }} />
+      <div className="app-quest-badge">
         <h3>Quest Badge: {questMetadata.name}</h3>
         <img
           src={allMilestonesCompleted ? questMetadata.image : '/assets/fallback/badge-placeholder.svg'}
           alt={allMilestonesCompleted ? questMetadata.name : 'Badge not yet earned'}
-          style={{ maxWidth: '150px', border: '1px solid #eee', marginBottom: '1rem' }}
+          className="app-badge-img"
         />
         <p><strong>Owner:</strong> {questMetadata.owner}</p>
         <p><strong>Status:</strong> {allMilestonesCompleted ? 'Quest Complete!' : `In Progress (${milestones.length}/5)`}</p>

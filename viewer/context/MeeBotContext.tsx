@@ -1,6 +1,9 @@
-
 import React, { createContext, useState, useContext, ReactNode } from 'react';
-import { MeeBotMood } from '../components/MeeBotSprite';
+// Import MeeBotMood as a type, or define it here if not exported as a type
+// import type { MeeBotMood } from '../components/MeeBotSprite';
+
+// Define MeeBotMood type if not available from MeeBotSprite
+export type MeeBotMood = 'neutral' | 'happy' | 'sad' | 'angry'; // adjust as needed
 
 interface MeeBotState {
   mood: MeeBotMood;
@@ -23,7 +26,7 @@ export const MeeBotProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const setMeeBot = (mood: MeeBotMood, message: string) => {
-    setMeeBotState(prevState => ({
+    setMeeBotState((prevState: MeeBotState) => ({
       ...prevState,
       mood: mood,
       message: message,

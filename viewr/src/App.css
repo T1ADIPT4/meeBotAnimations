@@ -1,0 +1,23 @@
+.app-loading {
+  text-align: center;
+  padding-top: 2rem;
+}
+
+.app-welcome {
+  font-family: monospace;
+  text-align: center;
+}
+
+.app-quest-badge {
+  border: 1px solid #ccc;
+  padding: 1rem;
+  margin-top: 1rem;
+  font-family: monospace;
+  text-align: center;
+}
+
+.app-badge-img {
+  max-width: 150px;
+  border: 1px solid #eee;
+  margin-bottom: 1rem;
+}

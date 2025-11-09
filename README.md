@@ -1,3 +1,11 @@
+# Axios & Types Installation
+
+To use axios and its TypeScript types, run:
+
+```
+npm install axios
+npm install --save-dev @types/axios
+```
 # MeeChain_MeeBot
 
 MeeChain เป็นแพลตฟอร์ม Web3 ที่ออกแบบมาเพื่อสร้างประสบการณ์ที่สนุกและปลอดภัยผ่านระบบ NFT, Quest, และ MeeBot ที่มีอารมณ์ตอบสนองแบบเรียลไทม์

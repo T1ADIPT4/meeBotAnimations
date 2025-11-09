@@ -1,0 +1,44 @@
+.meebot-kill-panel {
+  border-radius: 0.5rem;
+  background-color: white;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.meebot-kill-button {
+  margin-top: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  background-color: #dc2626;
+  color: white;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.meebotKillPanel {
+  border-radius: 0.5rem;
+  background-color: white;
+  padding: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.meebotKillPanelTitle {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.meebotKillPromptBox {
+  margin-bottom: 12px;
+}
+.meebotKillPromptActions {
+  margin-top: 8px;
+}
+.meebotKillPortBox {
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+.meebotKillCopyButton {
+  background-color: #666;
+  margin-left: 8px;
+}
+.meebotKillFree {
+  color: #16a34a;
+}
